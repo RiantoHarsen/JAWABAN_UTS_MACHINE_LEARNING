@@ -1,10 +1,8 @@
 # JAWABAN_UTS_MACHINE_LEARNING
 JAWABAN UTS NOMOR 1
 
-"""
-===============================================================================
 TUGAS KLASIFIKASI - PREDIKSI SURVIVAL TITANIC
-===============================================================================
+
 Nama    : FRANSISKUS RIANTO HARSEN
 NIM     : 231011401532
 Kelas   : 05TPLE005
@@ -13,8 +11,8 @@ Tanggal : 28 Oktober 2025
 Dataset : Titanic Survival Dataset
 Target  : Survived (0 = Tidak Selamat, 1 = Selamat)
 Model   : Logistic Regression, Decision Tree, KNN, SVM
-===============================================================================
-"""
+
+
 
 import pandas as pd
 import numpy as np
@@ -36,9 +34,9 @@ print("="*80)
 print("ANALISIS KLASIFIKASI - PREDIKSI SURVIVAL TITANIC")
 print("="*80)
 
-# ==============================================================================
-# BAGIAN 1: LOAD DATASET
-# ==============================================================================
+
+BAGIAN 1: LOAD DATASET
+
 print("\n" + "="*80)
 print("BAGIAN 1: LOAD DATASET")
 print("="*80)
@@ -50,9 +48,9 @@ print(f"  Jumlah kolom    : {titanic.shape[1]}")
 print(f"\nPreview 5 baris pertama:")
 print(titanic.head())
 
-# ==============================================================================
-# BAGIAN 2: EXPLORATORY DATA ANALYSIS (EDA)
-# ==============================================================================
+
+BAGIAN 2: EXPLORATORY DATA ANALYSIS (EDA)
+
 print("\n" + "="*80)
 print("BAGIAN 2: EXPLORATORY DATA ANALYSIS (EDA)")
 print("="*80)
@@ -150,9 +148,9 @@ plt.tight_layout()
 plt.savefig('01_EDA_Visualization.png', dpi=300, bbox_inches='tight')
 print("✓ Visualisasi EDA disimpan sebagai '01_EDA_Visualization.png'")
 
-# ==============================================================================
-# BAGIAN 3: DATA PREPROCESSING
-# ==============================================================================
+
+BAGIAN 3: DATA PREPROCESSING
+
 print("\n" + "="*80)
 print("BAGIAN 3: DATA PREPROCESSING")
 print("="*80)
@@ -216,9 +214,9 @@ print("✓ Feature scaling selesai")
 print(f"  Mean setelah scaling: {X_train_scaled.mean():.6f}")
 print(f"  Std setelah scaling: {X_train_scaled.std():.6f}")
 
-# ==============================================================================
-# BAGIAN 4: MODEL TRAINING
-# ==============================================================================
+
+BAGIAN 4: MODEL TRAINING
+
 print("\n" + "="*80)
 print("BAGIAN 4: MODEL TRAINING")
 print("="*80)
@@ -254,9 +252,9 @@ svm.fit(X_train_scaled, y_train)
 models['SVM'] = {'model': svm, 'scaled': True}
 print("✓ Model SVM berhasil ditraining")
 
-# ==============================================================================
-# BAGIAN 5: MODEL EVALUATION
-# ==============================================================================
+
+BAGIAN 5: MODEL EVALUATION
+
 print("\n" + "="*80)
 print("BAGIAN 5: MODEL EVALUATION")
 print("="*80)
@@ -331,9 +329,9 @@ for model_name, model_dict in models.items():
                                 target_names=['Tidak Selamat', 'Selamat'],
                                 digits=4))
 
-# ==============================================================================
-# BAGIAN 6: VISUALISASI HASIL EVALUASI
-# ==============================================================================
+
+BAGIAN 6: VISUALISASI HASIL EVALUASI
+
 print("\n" + "="*80)
 print("BAGIAN 6: VISUALISASI HASIL EVALUASI")
 print("="*80)
@@ -486,9 +484,9 @@ fig.suptitle('HASIL EVALUASI MODEL KLASIFIKASI - TITANIC DATASET',
 plt.savefig('02_Model_Evaluation_Results.png', dpi=300, bbox_inches='tight')
 print("\n✓ Visualisasi hasil evaluasi disimpan sebagai '02_Model_Evaluation_Results.png'")
 
-# ==============================================================================
-# BAGIAN 7: RINGKASAN & KESIMPULAN
-# ==============================================================================
+
+BAGIAN 7: RINGKASAN & KESIMPULAN
+
 print("\n" + "="*80)
 print("BAGIAN 7: RINGKASAN & KESIMPULAN")
 print("="*80)
