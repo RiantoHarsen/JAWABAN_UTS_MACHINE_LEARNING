@@ -1,0 +1,278 @@
+NAMA : FRANSIKUS RIANTO HARSEN
+NIM : 231011401532
+KELAS : 05TPLE005
+
+LAPORAN SINGKAT
+
+ 1. DESKRIPSI DATASET
+Tentang Dataset
+Dataset Titanic berisi informasi tentang penumpang kapal Titanic yang tenggelam pada tahun 1912. Dataset ini digunakan untuk memprediksi apakah seorang penumpang selamat (survived) atau tidak berdasarkan karakteristik mereka.
+Struktur Dataset
+•	Jumlah Data: 891 penumpang
+•	Jumlah Fitur: 15 kolom (sebelum preprocessing)
+•	Target Variable: survived (0 = Tidak Selamat, 1 = Selamat)
+Fitur-Fitur yang Digunakan
+Fitur	Tipe	Deskripsi
+survived	Kategorikal	Target variable (0/1)
+pclass	Numerik	Kelas tiket (1=First, 2=Second, 3=Third)
+sex	Kategorikal	Jenis kelamin (male/female)
+age	Numerik	Usia penumpang (tahun)
+sibsp	Numerik	Jumlah saudara/pasangan di kapal
+parch	Numerik	Jumlah orang tua/anak di kapal
+fare	Numerik	Harga tiket
+embarked	Kategorikal	Pelabuhan keberangkatan (C/Q/S)
+Distribusi Data
+•	Tidak Selamat (0): ~61.6%
+•	Selamat (1): ~38.4%
+•	Dataset memiliki class imbalance dengan lebih banyak penumpang yang tidak selamat
+Missing Values
+•	Age: ~19.9% missing → diisi dengan median
+•	Fare: 0.1% missing → diisi dengan median
+•	Embarked: 0.2% missing → diisi dengan modus
+
+
+ 2: MODEL YANG DIGUNAKAN
+Model 1: Logistic Regression
+Definisi: Logistic Regression adalah algoritma supervised learning untuk masalah klasifikasi yang memodelkan probabilitas suatu instance termasuk dalam kelas tertentu menggunakan fungsi sigmoid.
+Karakteristik:
+•	Tipe: Linear classifier
+•	Output: Probabilitas (0-1) melalui fungsi sigmoid
+•	Kelebihan: 
+o	Sederhana dan cepat
+o	Interpretable (dapat melihat koefisien fitur)
+o	Efisien untuk dataset berukuran besar
+•	Kekurangan: 
+o	Asumsi hubungan linear antara fitur dan log-odds
+o	Tidak dapat menangkap pola non-linear yang kompleks
+Hyperparameter yang Digunakan:
+•	random_state=42: Untuk reproducibility
+•	max_iter=1000: Maksimum iterasi untuk konvergensi
+Model 2: Decision Tree Classifier
+Definisi: Decision Tree adalah algoritma non-parametric yang membuat prediksi dengan membagi data menjadi subset berdasarkan nilai fitur, membentuk struktur pohon keputusan.
+Karakteristik:
+•	Tipe: Non-linear classifier
+•	Output: Klasifikasi berdasarkan aturan if-then-else
+•	Kelebihan: 
+o	Mudah diinterpretasikan (visualisasi pohon)
+o	Tidak memerlukan scaling fitur
+o	Dapat menangkap hubungan non-linear
+o	Menampilkan feature importance
+•	Kekurangan: 
+o	Rentan terhadap overfitting
+o	Tidak stabil (sensitif terhadap perubahan kecil data)
+Hyperparameter yang Digunakan:
+•	random_state=42: Untuk reproducibility
+•	max_depth=5: Membatasi kedalaman pohon untuk mencegah overfitting
+Preprocessing yang Diterapkan
+1. Handling Missing Values:
+•	Age & Fare: Imputation dengan median
+•	Embarked: Imputation dengan modus
+2. Encoding Kategorikal:
+•	Sex: Binary encoding (Male=1, Female=0)
+•	Embarked: Label encoding (C=0, Q=1, S=2)
+3. Feature Scaling:
+•	StandardScaler untuk Logistic Regression
+•	Tidak diperlukan untuk Decision Tree
+4. Split Data:
+•	Training: 80% (712 sampel)
+•	Testing: 20% (179 sampel)
+•	Stratified split untuk mempertahankan distribusi kelas
+
+
+3: HASIL EVALUASI
+Evaluasi Model 1: Logistic Regression
+Confusion Matrix:
+                 Predicted
+                 0    1
+Actual    0    [95   15]
+          1    [21   48]
+Interpretasi:
+•	True Negative (TN): 95 → Prediksi benar untuk tidak selamat
+•	False Positive (FP): 15 → Salah prediksi selamat (sebenarnya tidak)
+•	False Negative (FN): 21 → Salah prediksi tidak selamat (sebenarnya selamat)
+•	True Positive (TP): 48 → Prediksi benar untuk selamat
+Metrik Evaluasi:
+Metrik	Nilai	Interpretasi
+Accuracy	79.89%	Model benar dalam 79.89% prediksi
+Precision	76.19%	Dari yang diprediksi selamat, 76.19% benar
+Recall	69.57%	Dari yang sebenarnya selamat, 69.57% terdeteksi
+F1-Score	72.73%	Rata-rata harmonis precision & recall
+ROC AUC	85.25%	Kemampuan diskriminasi sangat baik
+ROC Curve:
+•	AUC = 0.8525 menunjukkan model memiliki kemampuan membedakan kelas yang sangat baik
+•	Jauh lebih baik dari random classifier (AUC = 0.5)
+Evaluasi Model 2: Decision Tree
+Confusion Matrix:
+                 Predicted
+                 0    1
+Actual    0    [92   18]
+          1    [24   45]
+Interpretasi:
+•	True Negative (TN): 92
+•	False Positive (FP): 18
+•	False Negative (FN): 24
+•	True Positive (TP): 45
+Metrik Evaluasi:
+Metrik	Nilai	Interpretasi
+Accuracy	76.54%	Model benar dalam 76.54% prediksi
+Precision	71.43%	Dari yang diprediksi selamat, 71.43% benar
+Recall	65.22%	Dari yang sebenarnya selamat, 65.22% terdeteksi
+F1-Score	68.18%	Rata-rata harmonis precision & recall
+ROC AUC	81.72%	Kemampuan diskriminasi baik
+Feature Importance: Fitur yang paling berpengaruh dalam Decision Tree:
+1.	sex: Paling penting (~40-50% importance)
+2.	pclass: Kelas penumpang
+3.	age: Usia penumpang
+4.	fare: Harga tiket
+
+
+4: PEMBAHASAN
+Perbandingan Performa Model
+Metrik	Logistic Regression	Decision Tree	Selisih
+Accuracy	79.89%	76.54%	+3.35%
+Precision	76.19%	71.43%	+4.76%
+Recall	69.57%	65.22%	+4.35%
+F1-Score	72.73%	68.18%	+4.55%
+ROC AUC	85.25%	81.72%	+3.53%
+Analisis Hasil
+1. Performa Keseluruhan:
+•	Logistic Regression unggul di semua metrik evaluasi
+•	Perbedaan F1-Score ~4.55% menunjukkan LR lebih konsisten
+•	Kedua model mencapai akurasi >75%, yang cukup baik untuk problem ini
+2. Precision vs Recall:
+•	Logistic Regression: Precision 76.19%, Recall 69.57% 
+o	Lebih konservatif dalam memprediksi "selamat"
+o	Mengurangi false positive
+•	Decision Tree: Precision 71.43%, Recall 65.22% 
+o	Lebih banyak kesalahan prediksi
+o	Trade-off antara precision dan recall lebih rendah
+3. ROC AUC:
+•	LR (85.25%) > DT (81.72%)
+•	Menunjukkan LR lebih baik dalam membedakan kelas pada berbagai threshold
+•	Kedua model jauh lebih baik dari random classifier (AUC=50%)
+4. Interpretabilitas:
+•	Decision Tree: Lebih mudah diinterpretasi melalui pohon keputusan dan feature importance
+•	Logistic Regression: Dapat melihat koefisien tapi perlu transformasi untuk interpretasi probabilitas
+Faktor Penyebab Perbedaan Performa
+Mengapa Logistic Regression Lebih Baik:
+1.	Linear Separability: Data Titanic memiliki pola yang relatif linear
+2.	Regularization: LR secara implisit melakukan regularization
+3.	Generalization: Lebih stabil dan tidak mudah overfit
+Kelemahan Decision Tree:
+1.	Overfitting Risk: Meskipun sudah dibatasi (max_depth=5), masih mungkin overfit
+2.	Instability: Sensitif terhadap perubahan kecil dalam data
+3.	Bias-Variance: Variance lebih tinggi dibanding LR
+Insight dari Feature Importance
+Dari Decision Tree, kita mendapat insight:
+•	Gender (sex) adalah prediktor terkuat → Wanita dan anak-anak diselamatkan terlebih dahulu
+•	Pclass penting → Penumpang kelas 1 lebih besar peluang selamat
+•	Age berpengaruh → Anak-anak diprioritaskan
+•	Fare korelasi dengan pclass dan kemungkinan lokasi kabin
+Kesalahan Klasifikasi
+False Negatives (prediksi tidak selamat, sebenarnya selamat):
+•	LR: 21 kasus, DT: 24 kasus
+•	Dampak: Orang yang sebenarnya bisa diselamatkan diprediksi tidak selamat
+•	Lebih kritis dalam konteks nyata (life-or-death decision)
+False Positives (prediksi selamat, sebenarnya tidak):
+•	LR: 15 kasus, DT: 18 kasus
+•	Dampak: Memberikan false hope
+•	Kurang kritis dibanding false negative
+Rekomendasi Improvement
+1. Hyperparameter Tuning:
+•	Grid Search atau Random Search untuk mencari parameter optimal
+•	Decision Tree: Coba variasi max_depth, min_samples_split, min_samples_leaf
+•	Logistic Regression: Coba regularization (C parameter)
+2. Feature Engineering:
+•	Buat fitur baru: family_size = sibsp + parch + 1
+•	Kategorisasi age menjadi age_group (child, adult, elderly)
+•	Interaksi fitur: sex × pclass
+3. Handling Class Imbalance:
+•	SMOTE (Synthetic Minority Over-sampling Technique)
+•	Class weight adjustment
+•	Under-sampling majority class
+4. Ensemble Methods:
+•	Random Forest (ensemble of decision trees)
+•	Gradient Boosting (XGBoost, LightGBM)
+•	Voting Classifier (kombinasi LR + DT)
+5. Cross-Validation:
+•	Gunakan K-Fold CV untuk evaluasi lebih robust
+•	Validasi bahwa performa konsisten di berbagai fold
+
+
+
+ 5: KESIMPULAN
+Kesimpulan Utama
+1.	Logistic Regression adalah Model Terbaik 
+o	Unggul di semua metrik evaluasi (Accuracy: 79.89%, F1-Score: 72.73%, ROC AUC: 85.25%)
+o	Lebih stabil dan konsisten dalam prediksi
+o	Cocok untuk deployment karena efisiensi komputasi tinggi
+o	Generalisasi lebih baik pada data yang belum pernah dilihat
+2.	Decision Tree Memberikan Interpretabilitas Tinggi 
+o	Performa sedikit di bawah LR (Accuracy: 76.54%, F1-Score: 68.18%)
+o	Feature importance menunjukkan 'sex' sebagai faktor terpenting (prioritas wanita & anak)
+o	Visualisasi pohon memudahkan pemahaman proses keputusan
+o	Berguna untuk analisis eksploratori dan presentasi ke stakeholder
+3.	Kedua Model Menunjukkan Performa yang Baik 
+o	Accuracy >75% pada data testing
+o	ROC AUC >80% menunjukkan kemampuan diskriminasi sangat baik
+o	Keduanya jauh lebih baik dari random classifier
+o	Dapat digunakan sebagai baseline untuk pengembangan model lebih lanjut
+4.	Gender adalah Faktor Paling Determinan 
+o	Dari feature importance Decision Tree, 'sex' memiliki bobot tertinggi
+o	Mencerminkan kebijakan "women and children first" dalam evakuasi Titanic
+o	Kelas penumpang (pclass) dan usia juga berpengaruh signifikan
+5.	Tantangan dalam Dataset 
+o	Class imbalance (61.6% tidak selamat vs 38.4% selamat)
+o	Missing values pada fitur penting (age ~20%)
+o	Kompleksitas hubungan antar fitur memerlukan feature engineering lebih lanjut
+Rekomendasi Akhir
+Untuk Aplikasi Praktis:
+•	Gunakan Logistic Regression sebagai model utama untuk deployment
+•	Pertimbangkan Decision Tree untuk analisis dan interpretasi hasil
+•	Implementasikan ensemble method (Random Forest, Gradient Boosting) untuk meningkatkan akurasi
+Untuk Penelitian Lanjutan:
+•	Lakukan hyperparameter tuning menggunakan Grid Search/Random Search
+•	Eksplorasi feature engineering (family_size, title extraction dari nama, dll)
+•	Terapkan teknik handling imbalance (SMOTE, class weighting)
+•	Gunakan cross-validation untuk validasi yang lebih robust
+•	Coba algoritma lain: SVM, Neural Networks, XGBoost
+Trade-off yang Perlu Dipertimbangkan:
+•	Accuracy vs Interpretability: LR lebih akurat, DT lebih interpretable
+•	Precision vs Recall: Tergantung use case, false negative lebih kritis dalam konteks keselamatan
+•	Complexity vs Performance: Model sederhana sudah memberikan performa baik, kompleksitas tambahan mungkin tidak perlu
+________________________________________
+LAMPIRAN: METRIK EVALUASI YANG DIGUNAKAN
+1. Confusion Matrix
+Tabel yang menunjukkan prediksi benar dan salah:
+•	True Negative (TN): Prediksi benar untuk kelas negatif
+•	True Positive (TP): Prediksi benar untuk kelas positif
+•	False Positive (FP): Salah prediksi positif (Type I Error)
+•	False Negative (FN): Salah prediksi negatif (Type II Error)
+2. Accuracy
+Formula: (TP + TN) / (TP + TN + FP + FN)
+•	Persentase prediksi yang benar dari total prediksi
+•	Dapat menyesatkan pada imbalanced dataset
+3. Precision
+Formula: TP / (TP + FP)
+•	Dari semua yang diprediksi positif, berapa yang benar-benar positif
+•	Penting ketika cost of false positive tinggi
+4. Recall (Sensitivity)
+Formula: TP / (TP + FN)
+•	Dari semua yang benar-benar positif, berapa yang berhasil diprediksi
+•	Penting ketika cost of false negative tinggi
+5. F1-Score
+Formula: 2 × (Precision × Recall) / (Precision + Recall)
+•	Rata-rata harmonis precision dan recall
+•	Metrik seimbang untuk menilai performa keseluruhan
+•	Lebih robust untuk imbalanced dataset
+6. ROC AUC (Area Under ROC Curve)
+•	Mengukur kemampuan model membedakan kelas pada berbagai threshold
+•	Nilai 0.5 = random classifier, 1.0 = perfect classifier
+•	0.8 dianggap sangat baik
+________________________________________
+•	Scikit-learn Documentation: https://scikit-learn.org/
+•	Seaborn Dataset: Built-in Titanic dataset
+________________________________________
+.
+
+
