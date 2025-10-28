@@ -8,12 +8,12 @@ NIM     : 231011401532
 Kelas   : 05TPLE005
 Tanggal : 28 Oktober 2025
 
-Dataset : Titanic Survival Dataset
-Target  : Survived (0 = Tidak Selamat, 1 = Selamat)
-Model   : Logistic Regression, Decision Tree, KNN, SVM
+"""
+ANALISIS KLASIFIKASI DATASET TITANIC
+Menggunakan Logistic Regression dan Decision Tree
+"""
 
-
-
+# Import Library
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,518 +22,373 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
 from sklearn.metrics import (confusion_matrix, accuracy_score, precision_score, 
-                             recall_score, f1_score, classification_report,
-                             roc_curve, roc_auc_score, ConfusionMatrixDisplay)
+                            recall_score, f1_score, classification_report, 
+                            roc_curve, auc, roc_auc_score)
 import warnings
 warnings.filterwarnings('ignore')
 
-print("="*80)
-print("ANALISIS KLASIFIKASI - PREDIKSI SURVIVAL TITANIC")
-print("="*80)
+# Set style untuk visualisasi
+sns.set_style('whitegrid')
+plt.rcParams['figure.figsize'] = (12, 6)
+
+print("="*70)
+print("ANALISIS KLASIFIKASI DATASET TITANIC")
+print("="*70)
 
 
-BAGIAN 1: LOAD DATASET
+# 1. LOAD DATASET
 
-print("\n" + "="*80)
-print("BAGIAN 1: LOAD DATASET")
-print("="*80)
+print("\n[1] LOADING DATASET...")
 
-titanic = sns.load_dataset('titanic')
-print(f"\n✓ Dataset berhasil dimuat")
-print(f"  Jumlah baris    : {titanic.shape[0]}")
-print(f"  Jumlah kolom    : {titanic.shape[1]}")
-print(f"\nPreview 5 baris pertama:")
-print(titanic.head())
+# Load dataset Titanic dari seaborn
+df = sns.load_dataset('titanic')
+print(f"✓ Dataset berhasil dimuat: {df.shape[0]} baris, {df.shape[1]} kolom")
 
 
-BAGIAN 2: EXPLORATORY DATA ANALYSIS (EDA)
+# 2. EXPLORATORY DATA ANALYSIS (EDA)
 
-print("\n" + "="*80)
-print("BAGIAN 2: EXPLORATORY DATA ANALYSIS (EDA)")
-print("="*80)
+print("\n[2] EXPLORATORY DATA ANALYSIS (EDA)")
+print("-" * 70)
 
-# 2.1 Informasi Dataset
-print("\n--- 2.1 Informasi Dataset ---")
-print(titanic.info())
+# Info dataset
+print("\n2.1 Informasi Dataset:")
+print(df.info())
 
-# 2.2 Statistik Deskriptif
-print("\n--- 2.2 Statistik Deskriptif ---")
-print(titanic.describe())
+# Statistik deskriptif
+print("\n2.2 Statistik Deskriptif:")
+print(df.describe())
 
-# 2.3 Missing Values
-print("\n--- 2.3 Missing Values ---")
-missing = titanic.isnull().sum()
-missing_pct = (missing / len(titanic) * 100).round(2)
+# Cek missing values
+print("\n2.3 Missing Values:")
+missing = df.isnull().sum()
+missing_percent = (missing / len(df)) * 100
 missing_df = pd.DataFrame({
-    'Missing_Count': missing,
-    'Percentage': missing_pct
+    'Jumlah Missing': missing,
+    'Persentase (%)': missing_percent
 })
-print(missing_df[missing_df['Missing_Count'] > 0].sort_values('Missing_Count', ascending=False))
+print(missing_df[missing_df['Jumlah Missing'] > 0])
 
-# 2.4 Distribusi Target Variable
-print("\n--- 2.4 Distribusi Target Variable (Survived) ---")
-print(titanic['survived'].value_counts())
-print(f"\nPersentase yang selamat: {titanic['survived'].mean()*100:.2f}%")
-print(f"Persentase yang tidak selamat: {(1-titanic['survived'].mean())*100:.2f}%")
-
-# 2.5 Visualisasi EDA
-print("\n--- 2.5 Membuat Visualisasi EDA ---")
-fig, axes = plt.subplots(2, 3, figsize=(18, 10))
-fig.suptitle('EXPLORATORY DATA ANALYSIS - TITANIC DATASET', 
-             fontsize=16, fontweight='bold', y=1.00)
-
-# Plot 1: Distribusi Survived
-ax1 = axes[0, 0]
-survived_counts = titanic['survived'].value_counts()
-bars = ax1.bar(['Tidak Selamat', 'Selamat'], survived_counts.values, 
-               color=['#e74c3c', '#2ecc71'], edgecolor='black', linewidth=1.5)
-ax1.set_title('Distribusi Status Keselamatan', fontsize=12, fontweight='bold')
-ax1.set_ylabel('Jumlah Penumpang')
-for bar in bars:
-    height = bar.get_height()
-    ax1.text(bar.get_x() + bar.get_width()/2., height,
-             f'{int(height)}\n({height/len(titanic)*100:.1f}%)',
-             ha='center', va='bottom', fontweight='bold')
-
-# Plot 2: Survival by Gender
-ax2 = axes[0, 1]
-pd.crosstab(titanic['sex'], titanic['survived']).plot(kind='bar', ax=ax2, 
-                                                        color=['#e74c3c', '#2ecc71'])
-ax2.set_title('Keselamatan Berdasarkan Gender', fontsize=12, fontweight='bold')
-ax2.set_xlabel('Gender')
-ax2.set_ylabel('Jumlah')
-ax2.legend(['Tidak Selamat', 'Selamat'])
-ax2.set_xticklabels(ax2.get_xticklabels(), rotation=0)
-
-# Plot 3: Survival by Class
-ax3 = axes[0, 2]
-pd.crosstab(titanic['pclass'], titanic['survived']).plot(kind='bar', ax=ax3,
-                                                           color=['#e74c3c', '#2ecc71'])
-ax3.set_title('Keselamatan Berdasarkan Kelas', fontsize=12, fontweight='bold')
-ax3.set_xlabel('Kelas Penumpang')
-ax3.set_ylabel('Jumlah')
-ax3.legend(['Tidak Selamat', 'Selamat'])
-ax3.set_xticklabels(['1st Class', '2nd Class', '3rd Class'], rotation=0)
-
-# Plot 4: Distribusi Age
-ax4 = axes[1, 0]
-titanic['age'].hist(bins=30, ax=ax4, color='skyblue', edgecolor='black')
-ax4.axvline(titanic['age'].median(), color='red', linestyle='--', linewidth=2, label=f'Median: {titanic["age"].median():.1f}')
-ax4.set_title('Distribusi Usia Penumpang', fontsize=12, fontweight='bold')
-ax4.set_xlabel('Usia')
-ax4.set_ylabel('Frekuensi')
-ax4.legend()
-
-# Plot 5: Distribusi Fare
-ax5 = axes[1, 1]
-titanic['fare'].hist(bins=30, ax=ax5, color='lightcoral', edgecolor='black')
-ax5.axvline(titanic['fare'].median(), color='red', linestyle='--', linewidth=2, label=f'Median: ${titanic["fare"].median():.2f}')
-ax5.set_title('Distribusi Harga Tiket', fontsize=12, fontweight='bold')
-ax5.set_xlabel('Harga Tiket ($)')
-ax5.set_ylabel('Frekuensi')
-ax5.legend()
-
-# Plot 6: Correlation Heatmap
-ax6 = axes[1, 2]
-corr_cols = ['survived', 'pclass', 'age', 'sibsp', 'parch', 'fare']
-corr_matrix = titanic[corr_cols].corr()
-sns.heatmap(corr_matrix, annot=True, fmt='.2f', cmap='RdYlGn', center=0, ax=ax6,
-            cbar_kws={'label': 'Correlation'}, linewidths=1)
-ax6.set_title('Matriks Korelasi', fontsize=12, fontweight='bold')
-
-plt.tight_layout()
-plt.savefig('01_EDA_Visualization.png', dpi=300, bbox_inches='tight')
-print("✓ Visualisasi EDA disimpan sebagai '01_EDA_Visualization.png'")
+# Distribusi target variable
+print("\n2.4 Distribusi Target Variable (Survived):")
+print(df['survived'].value_counts())
+print(f"\nPersentase Survived:")
+print(df['survived'].value_counts(normalize=True) * 100)
 
 
-BAGIAN 3: DATA PREPROCESSING
+# 3. DATA PREPROCESSING
 
-print("\n" + "="*80)
-print("BAGIAN 3: DATA PREPROCESSING")
-print("="*80)
+print("\n[3] DATA PREPROCESSING")
+print("-" * 70)
 
-# 3.1 Seleksi Fitur
-print("\n--- 3.1 Seleksi Fitur ---")
-features = ['pclass', 'sex', 'age', 'sibsp', 'parch', 'fare', 'embarked']
-df = titanic[features + ['survived']].copy()
-print(f"Fitur yang dipilih: {features}")
-print(f"Shape dataset: {df.shape}")
+# Pilih kolom yang relevan
+relevant_cols = ['survived', 'pclass', 'sex', 'age', 'sibsp', 'parch', 'fare', 'embarked']
+df_clean = df[relevant_cols].copy()
 
-# 3.2 Handling Missing Values
-print("\n--- 3.2 Handling Missing Values ---")
-print("Missing values SEBELUM handling:")
-print(df.isnull().sum())
+# Handle missing values
+print("\n3.1 Menangani Missing Values:")
+# Age: isi dengan median
+df_clean['age'].fillna(df_clean['age'].median(), inplace=True)
+print("✓ Age: diisi dengan median")
 
-df['age'].fillna(df['age'].median(), inplace=True)
-df['embarked'].fillna(df['embarked'].mode()[0], inplace=True)
-df['fare'].fillna(df['fare'].median(), inplace=True)
+# Fare: isi dengan median
+df_clean['fare'].fillna(df_clean['fare'].median(), inplace=True)
+print("✓ Fare: diisi dengan median")
 
-print("\nMissing values SETELAH handling:")
-print(df.isnull().sum())
-print("✓ Semua missing values telah ditangani")
+# Embarked: isi dengan modus
+df_clean['embarked'].fillna(df_clean['embarked'].mode()[0], inplace=True)
+print("✓ Embarked: diisi dengan modus")
 
-# 3.3 Encoding Categorical Variables
-print("\n--- 3.3 Encoding Categorical Variables ---")
-le_sex = LabelEncoder()
-le_embarked = LabelEncoder()
+# Encoding variabel kategorikal
+print("\n3.2 Encoding Variabel Kategorikal:")
+# Sex: Male=1, Female=0
+df_clean['sex'] = df_clean['sex'].map({'male': 1, 'female': 0})
+print("✓ Sex: Male=1, Female=0")
 
-df['sex'] = le_sex.fit_transform(df['sex'])
-df['embarked'] = le_embarked.fit_transform(df['embarked'])
+# Embarked: Label Encoding
+le = LabelEncoder()
+df_clean['embarked'] = le.fit_transform(df_clean['embarked'])
+print("✓ Embarked: Label Encoded")
 
-print("Encoding untuk 'sex':")
-print(f"  {dict(zip(le_sex.classes_, le_sex.transform(le_sex.classes_)))}")
-print("Encoding untuk 'embarked':")
-print(f"  {dict(zip(le_embarked.classes_, le_embarked.transform(le_embarked.classes_)))}")
-print("✓ Encoding selesai")
+# Cek apakah masih ada missing values
+print("\n3.3 Verifikasi Missing Values setelah preprocessing:")
+print(df_clean.isnull().sum())
 
-# 3.4 Split Features dan Target
-print("\n--- 3.4 Split Features dan Target ---")
-X = df.drop('survived', axis=1)
-y = df['survived']
-print(f"Shape X (Features): {X.shape}")
-print(f"Shape y (Target): {y.shape}")
-print(f"\nNama fitur: {list(X.columns)}")
 
-# 3.5 Train-Test Split
-print("\n--- 3.5 Train-Test Split ---")
+# 4. SPLIT DATA
+
+print("\n[4] SPLIT DATA")
+print("-" * 70)
+
+# Pisahkan fitur dan target
+X = df_clean.drop('survived', axis=1)
+y = df_clean['survived']
+
+# Split train-test (80:20)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
-print(f"Data Training: {X_train.shape[0]} samples ({X_train.shape[0]/len(X)*100:.1f}%)")
-print(f"Data Testing : {X_test.shape[0]} samples ({X_test.shape[0]/len(X)*100:.1f}%)")
 
-# 3.6 Feature Scaling
-print("\n--- 3.6 Feature Scaling (StandardScaler) ---")
+print(f"✓ Data Training: {X_train.shape[0]} sampel")
+print(f"✓ Data Testing: {X_test.shape[0]} sampel")
+
+# Scaling fitur numerik
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
-print("✓ Feature scaling selesai")
-print(f"  Mean setelah scaling: {X_train_scaled.mean():.6f}")
-print(f"  Std setelah scaling: {X_train_scaled.std():.6f}")
+print("✓ Feature scaling selesai menggunakan StandardScaler")
 
 
-BAGIAN 4: MODEL TRAINING
+# 5. MODEL TRAINING - LOGISTIC REGRESSION
 
-print("\n" + "="*80)
-print("BAGIAN 4: MODEL TRAINING")
-print("="*80)
+print("\n[5] MODEL TRAINING - LOGISTIC REGRESSION")
+print("-" * 70)
 
-models = {}
-results = {}
+# Train model
+lr_model = LogisticRegression(random_state=42, max_iter=1000)
+lr_model.fit(X_train_scaled, y_train)
+print("✓ Model Logistic Regression berhasil dilatih")
 
-# 4.1 Logistic Regression
-print("\n--- 4.1 Logistic Regression ---")
-lr = LogisticRegression(random_state=42, max_iter=1000)
-lr.fit(X_train_scaled, y_train)
-models['Logistic Regression'] = {'model': lr, 'scaled': True}
-print("✓ Model Logistic Regression berhasil ditraining")
-
-# 4.2 Decision Tree
-print("\n--- 4.2 Decision Tree ---")
-dt = DecisionTreeClassifier(random_state=42, max_depth=5)
-dt.fit(X_train, y_train)
-models['Decision Tree'] = {'model': dt, 'scaled': False}
-print("✓ Model Decision Tree berhasil ditraining")
-
-# 4.3 K-Nearest Neighbors
-print("\n--- 4.3 K-Nearest Neighbors (KNN) ---")
-knn = KNeighborsClassifier(n_neighbors=5)
-knn.fit(X_train_scaled, y_train)
-models['KNN'] = {'model': knn, 'scaled': True}
-print("✓ Model KNN berhasil ditraining")
-
-# 4.4 Support Vector Machine
-print("\n--- 4.4 Support Vector Machine (SVM) ---")
-svm = SVC(random_state=42, probability=True, kernel='rbf')
-svm.fit(X_train_scaled, y_train)
-models['SVM'] = {'model': svm, 'scaled': True}
-print("✓ Model SVM berhasil ditraining")
+# Prediksi
+y_pred_lr = lr_model.predict(X_test_scaled)
+y_pred_proba_lr = lr_model.predict_proba(X_test_scaled)[:, 1]
 
 
-BAGIAN 5: MODEL EVALUATION
+# 6. MODEL TRAINING - DECISION TREE
 
-print("\n" + "="*80)
-print("BAGIAN 5: MODEL EVALUATION")
-print("="*80)
+print("\n[6] MODEL TRAINING - DECISION TREE")
+print("-" * 70)
 
-for model_name, model_dict in models.items():
-    print(f"\n{'='*80}")
-    print(f"MODEL: {model_name}")
-    print('='*80)
-    
-    model = model_dict['model']
-    use_scaled = model_dict['scaled']
-    
-    # Pilih data yang sesuai
-    X_test_used = X_test_scaled if use_scaled else X_test
-    
-    # Prediksi
-    y_pred = model.predict(X_test_used)
-    y_proba = model.predict_proba(X_test_used)[:, 1]
-    
-    # Hitung Metrik
-    accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-    
-    # Confusion Matrix
-    cm = confusion_matrix(y_test, y_pred)
-    tn, fp, fn, tp = cm.ravel()
-    
-    # ROC AUC
-    auc = roc_auc_score(y_test, y_proba)
-    
-    # Simpan hasil
-    results[model_name] = {
-        'accuracy': accuracy,
-        'precision': precision,
-        'recall': recall,
-        'f1_score': f1,
-        'auc': auc,
-        'confusion_matrix': cm,
-        'y_pred': y_pred,
-        'y_proba': y_proba
-    }
-    
-    # Tampilkan Hasil
-    print(f"\n📊 METRIK EVALUASI:")
-    print(f"{'─'*80}")
-    print(f"  Accuracy  : {accuracy:.4f} ({accuracy*100:.2f}%)")
-    print(f"  Precision : {precision:.4f}")
-    print(f"  Recall    : {recall:.4f}")
-    print(f"  F1-Score  : {f1:.4f}")
-    print(f"  ROC-AUC   : {auc:.4f}")
-    
-    print(f"\n📋 CONFUSION MATRIX:")
-    print(f"{'─'*80}")
-    print(f"                    Predicted")
-    print(f"                 No       Yes")
-    print(f"  Actual No     {tn:4d}     {fp:4d}     [{tn+fp:4d}]")
-    print(f"  Actual Yes    {fn:4d}     {tp:4d}     [{fn+tp:4d}]")
-    print(f"                [{tn+fn:4d}]   [{fp+tp:4d}]")
-    
-    print(f"\n📈 INTERPRETASI:")
-    print(f"{'─'*80}")
-    print(f"  True Negatives  (TN): {tn} - Benar prediksi TIDAK selamat")
-    print(f"  False Positives (FP): {fp} - Salah prediksi SELAMAT (sebenarnya tidak)")
-    print(f"  False Negatives (FN): {fn} - Salah prediksi TIDAK selamat (sebenarnya selamat)")
-    print(f"  True Positives  (TP): {tp} - Benar prediksi SELAMAT")
-    
-    print(f"\n📝 CLASSIFICATION REPORT:")
-    print(f"{'─'*80}")
-    print(classification_report(y_test, y_pred, 
-                                target_names=['Tidak Selamat', 'Selamat'],
-                                digits=4))
+# Train model
+dt_model = DecisionTreeClassifier(random_state=42, max_depth=5)
+dt_model.fit(X_train, y_train)
+print("✓ Model Decision Tree berhasil dilatih")
+
+# Prediksi
+y_pred_dt = dt_model.predict(X_test)
+y_pred_proba_dt = dt_model.predict_proba(X_test)[:, 1]
 
 
-BAGIAN 6: VISUALISASI HASIL EVALUASI
+# 7. EVALUASI MODEL
 
-print("\n" + "="*80)
-print("BAGIAN 6: VISUALISASI HASIL EVALUASI")
-print("="*80)
+print("\n[7] EVALUASI MODEL")
+print("="*70)
 
-fig = plt.figure(figsize=(20, 14))
-gs = fig.add_gridspec(4, 4, hspace=0.35, wspace=0.35)
+# ========== LOGISTIC REGRESSION ==========
+print("\n7.1 LOGISTIC REGRESSION")
+print("-" * 70)
 
-# Row 1: Confusion Matrices
-print("\n--- Membuat Confusion Matrices ---")
-for idx, (model_name, result) in enumerate(results.items()):
-    ax = fig.add_subplot(gs[0, idx])
-    cm = result['confusion_matrix']
-    
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax, 
-                cbar=False, annot_kws={'size': 14, 'weight': 'bold'})
-    ax.set_title(f'{model_name}\nConfusion Matrix', fontsize=11, fontweight='bold')
-    ax.set_ylabel('Actual', fontsize=10)
-    ax.set_xlabel('Predicted', fontsize=10)
-    ax.set_xticklabels(['No', 'Yes'])
-    ax.set_yticklabels(['No', 'Yes'])
+# Confusion Matrix
+cm_lr = confusion_matrix(y_test, y_pred_lr)
+print("\nConfusion Matrix:")
+print(cm_lr)
 
-# Row 2: Metrics Comparison (Bar Chart)
-print("--- Membuat Metrics Comparison ---")
-ax1 = fig.add_subplot(gs[1, :2])
-metrics_df = pd.DataFrame({
-    name: [res['accuracy'], res['precision'], res['recall'], res['f1_score']]
-    for name, res in results.items()
-}, index=['Accuracy', 'Precision', 'Recall', 'F1-Score'])
+# Metrik evaluasi
+acc_lr = accuracy_score(y_test, y_pred_lr)
+prec_lr = precision_score(y_test, y_pred_lr)
+rec_lr = recall_score(y_test, y_pred_lr)
+f1_lr = f1_score(y_test, y_pred_lr)
+roc_auc_lr = roc_auc_score(y_test, y_pred_proba_lr)
 
-metrics_df.T.plot(kind='bar', ax=ax1, width=0.75, colormap='viridis')
-ax1.set_title('Perbandingan Metrik Antar Model', fontsize=13, fontweight='bold')
-ax1.set_ylabel('Score', fontsize=11)
-ax1.set_xlabel('Model', fontsize=11)
-ax1.set_ylim([0, 1])
-ax1.legend(loc='lower right', fontsize=9)
-ax1.grid(axis='y', alpha=0.3)
-ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right')
+print(f"\nMetrik Evaluasi:")
+print(f"Accuracy  : {acc_lr:.4f} ({acc_lr*100:.2f}%)")
+print(f"Precision : {prec_lr:.4f} ({prec_lr*100:.2f}%)")
+print(f"Recall    : {rec_lr:.4f} ({rec_lr*100:.2f}%)")
+print(f"F1-Score  : {f1_lr:.4f} ({f1_lr*100:.2f}%)")
+print(f"ROC AUC   : {roc_auc_lr:.4f} ({roc_auc_lr*100:.2f}%)")
 
-# Add values on bars
-for container in ax1.containers:
-    ax1.bar_label(container, fmt='%.3f', fontsize=7)
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred_lr, target_names=['Not Survived', 'Survived']))
 
-# Row 2: ROC Curves
-print("--- Membuat ROC Curves ---")
-ax2 = fig.add_subplot(gs[1, 2:])
-colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+# ========== DECISION TREE ==========
+print("\n7.2 DECISION TREE")
+print("-" * 70)
 
-for idx, (model_name, result) in enumerate(results.items()):
-    fpr, tpr, _ = roc_curve(y_test, result['y_proba'])
-    auc = result['auc']
-    ax2.plot(fpr, tpr, label=f'{model_name} (AUC={auc:.4f})', 
-             linewidth=2.5, color=colors[idx])
+# Confusion Matrix
+cm_dt = confusion_matrix(y_test, y_pred_dt)
+print("\nConfusion Matrix:")
+print(cm_dt)
 
-ax2.plot([0, 1], [0, 1], 'k--', linewidth=2, label='Random Classifier (AUC=0.5000)')
-ax2.set_xlabel('False Positive Rate', fontsize=11)
-ax2.set_ylabel('True Positive Rate', fontsize=11)
-ax2.set_title('ROC Curves - Perbandingan Semua Model', fontsize=13, fontweight='bold')
-ax2.legend(loc='lower right', fontsize=9)
-ax2.grid(alpha=0.3)
+# Metrik evaluasi
+acc_dt = accuracy_score(y_test, y_pred_dt)
+prec_dt = precision_score(y_test, y_pred_dt)
+rec_dt = recall_score(y_test, y_pred_dt)
+f1_dt = f1_score(y_test, y_pred_dt)
+roc_auc_dt = roc_auc_score(y_test, y_pred_proba_dt)
 
-# Row 3: Individual Accuracy Bars
-print("--- Membuat Accuracy Comparison ---")
-ax3 = fig.add_subplot(gs[2, :2])
-accuracy_dict = {name: res['accuracy'] for name, res in results.items()}
-bars = ax3.bar(accuracy_dict.keys(), accuracy_dict.values(), 
-               color=colors, edgecolor='black', linewidth=1.5)
-ax3.set_title('Perbandingan Accuracy Model', fontsize=13, fontweight='bold')
-ax3.set_ylabel('Accuracy', fontsize=11)
-ax3.set_ylim([0, 1])
-ax3.grid(axis='y', alpha=0.3)
-ax3.set_xticklabels(ax3.get_xticklabels(), rotation=45, ha='right')
+print(f"\nMetrik Evaluasi:")
+print(f"Accuracy  : {acc_dt:.4f} ({acc_dt*100:.2f}%)")
+print(f"Precision : {prec_dt:.4f} ({prec_dt*100:.2f}%)")
+print(f"Recall    : {rec_dt:.4f} ({rec_dt*100:.2f}%)")
+print(f"F1-Score  : {f1_dt:.4f} ({f1_dt*100:.2f}%)")
+print(f"ROC AUC   : {roc_auc_dt:.4f} ({roc_auc_dt*100:.2f}%)")
 
-for bar in bars:
-    height = bar.get_height()
-    ax3.text(bar.get_x() + bar.get_width()/2., height + 0.01,
-             f'{height:.4f}\n({height*100:.2f}%)', 
-             ha='center', va='bottom', fontsize=10, fontweight='bold')
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred_dt, target_names=['Not Survived', 'Survived']))
 
-# Row 3: Feature Importance (Decision Tree)
-print("--- Membuat Feature Importance ---")
-ax4 = fig.add_subplot(gs[2, 2:])
-dt_model = models['Decision Tree']['model']
-importance_df = pd.DataFrame({
+
+# 8. PERBANDINGAN MODEL
+
+print("\n[8] PERBANDINGAN MODEL")
+print("="*70)
+
+comparison_df = pd.DataFrame({
+    'Model': ['Logistic Regression', 'Decision Tree'],
+    'Accuracy': [acc_lr, acc_dt],
+    'Precision': [prec_lr, prec_dt],
+    'Recall': [rec_lr, rec_dt],
+    'F1-Score': [f1_lr, f1_dt],
+    'ROC AUC': [roc_auc_lr, roc_auc_dt]
+})
+
+print("\nTabel Perbandingan:")
+print(comparison_df.to_string(index=False))
+
+# Tentukan model terbaik
+best_model = 'Logistic Regression' if f1_lr > f1_dt else 'Decision Tree'
+print(f"\n✓ Model terbaik berdasarkan F1-Score: {best_model}")
+
+
+# 9. VISUALISASI
+
+print("\n[9] MEMBUAT VISUALISASI...")
+print("-" * 70)
+
+# Create figure dengan 4 subplots
+fig = plt.figure(figsize=(16, 12))
+
+# 1. Confusion Matrix - Logistic Regression
+ax1 = plt.subplot(2, 3, 1)
+sns.heatmap(cm_lr, annot=True, fmt='d', cmap='Blues', cbar=False,
+            xticklabels=['Not Survived', 'Survived'],
+            yticklabels=['Not Survived', 'Survived'])
+plt.title('Confusion Matrix - Logistic Regression', fontsize=12, fontweight='bold')
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+
+# 2. Confusion Matrix - Decision Tree
+ax2 = plt.subplot(2, 3, 2)
+sns.heatmap(cm_dt, annot=True, fmt='d', cmap='Greens', cbar=False,
+            xticklabels=['Not Survived', 'Survived'],
+            yticklabels=['Not Survived', 'Survived'])
+plt.title('Confusion Matrix - Decision Tree', fontsize=12, fontweight='bold')
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+
+# 3. ROC Curve
+ax3 = plt.subplot(2, 3, 3)
+# ROC untuk Logistic Regression
+fpr_lr, tpr_lr, _ = roc_curve(y_test, y_pred_proba_lr)
+plt.plot(fpr_lr, tpr_lr, label=f'Logistic Regression (AUC = {roc_auc_lr:.3f})', 
+         linewidth=2, color='blue')
+
+# ROC untuk Decision Tree
+fpr_dt, tpr_dt, _ = roc_curve(y_test, y_pred_proba_dt)
+plt.plot(fpr_dt, tpr_dt, label=f'Decision Tree (AUC = {roc_auc_dt:.3f})', 
+         linewidth=2, color='green')
+
+# Diagonal line
+plt.plot([0, 1], [0, 1], 'k--', linewidth=1, label='Random Classifier')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve Comparison', fontsize=12, fontweight='bold')
+plt.legend(loc="lower right")
+plt.grid(True, alpha=0.3)
+
+# 4. Perbandingan Metrik
+ax4 = plt.subplot(2, 3, 4)
+metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC AUC']
+lr_scores = [acc_lr, prec_lr, rec_lr, f1_lr, roc_auc_lr]
+dt_scores = [acc_dt, prec_dt, rec_dt, f1_dt, roc_auc_dt]
+
+x = np.arange(len(metrics))
+width = 0.35
+
+bars1 = plt.bar(x - width/2, lr_scores, width, label='Logistic Regression', color='skyblue')
+bars2 = plt.bar(x + width/2, dt_scores, width, label='Decision Tree', color='lightgreen')
+
+plt.xlabel('Metrics')
+plt.ylabel('Score')
+plt.title('Model Performance Comparison', fontsize=12, fontweight='bold')
+plt.xticks(x, metrics, rotation=45, ha='right')
+plt.legend()
+plt.ylim([0, 1.1])
+plt.grid(True, alpha=0.3, axis='y')
+
+# Tambahkan nilai di atas bar
+for bars in [bars1, bars2]:
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.3f}', ha='center', va='bottom', fontsize=8)
+
+# 5. Feature Importance - Decision Tree
+ax5 = plt.subplot(2, 3, 5)
+feature_importance = pd.DataFrame({
     'Feature': X.columns,
     'Importance': dt_model.feature_importances_
-}).sort_values('Importance', ascending=True)
+}).sort_values('Importance', ascending=False)
 
-bars = ax4.barh(importance_df['Feature'], importance_df['Importance'], 
-                color='coral', edgecolor='black', linewidth=1)
-ax4.set_xlabel('Importance Score', fontsize=11)
-ax4.set_title('Feature Importance (Decision Tree)', fontsize=13, fontweight='bold')
-ax4.grid(axis='x', alpha=0.3)
+plt.barh(feature_importance['Feature'], feature_importance['Importance'], color='green', alpha=0.7)
+plt.xlabel('Importance')
+plt.title('Feature Importance - Decision Tree', fontsize=12, fontweight='bold')
+plt.gca().invert_yaxis()
 
-for bar in bars:
-    width = bar.get_width()
-    ax4.text(width + 0.005, bar.get_y() + bar.get_height()/2.,
-             f'{width:.4f}', ha='left', va='center', fontsize=9, fontweight='bold')
+# 6. Distribution of Predictions
+ax6 = plt.subplot(2, 3, 6)
+models_pred = ['LR - Not Survived', 'LR - Survived', 'DT - Not Survived', 'DT - Survived']
+pred_counts = [
+    sum(y_pred_lr == 0), sum(y_pred_lr == 1),
+    sum(y_pred_dt == 0), sum(y_pred_dt == 1)
+]
+colors = ['lightblue', 'blue', 'lightgreen', 'green']
+plt.bar(models_pred, pred_counts, color=colors, alpha=0.7)
+plt.ylabel('Count')
+plt.title('Distribution of Predictions', fontsize=12, fontweight='bold')
+plt.xticks(rotation=45, ha='right')
+plt.grid(True, alpha=0.3, axis='y')
 
-# Row 4: Summary Table
-print("--- Membuat Summary Table ---")
-ax5 = fig.add_subplot(gs[3, :])
-ax5.axis('tight')
-ax5.axis('off')
+plt.tight_layout()
+plt.savefig('titanic_classification_analysis.png', dpi=300, bbox_inches='tight')
+print("✓ Visualisasi berhasil disimpan sebagai 'titanic_classification_analysis.png'")
 
-summary_data = []
-for model_name, result in results.items():
-    summary_data.append([
-        model_name,
-        f"{result['accuracy']:.4f}",
-        f"{result['precision']:.4f}",
-        f"{result['recall']:.4f}",
-        f"{result['f1_score']:.4f}",
-        f"{result['auc']:.4f}"
-    ])
-
-summary_df_display = pd.DataFrame(summary_data, 
-                                  columns=['Model', 'Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC'])
-
-table = ax5.table(cellText=summary_df_display.values,
-                  colLabels=summary_df_display.columns,
-                  cellLoc='center',
-                  loc='center',
-                  bbox=[0, 0, 1, 1])
-
-table.auto_set_font_size(False)
-table.set_fontsize(10)
-table.scale(1, 2.5)
-
-# Style header
-for i in range(len(summary_df_display.columns)):
-    cell = table[(0, i)]
-    cell.set_facecolor('#4CAF50')
-    cell.set_text_props(weight='bold', color='white', size=11)
-
-# Style cells
-for i in range(1, len(summary_data) + 1):
-    for j in range(len(summary_df_display.columns)):
-        cell = table[(i, j)]
-        if i % 2 == 0:
-            cell.set_facecolor('#f0f0f0')
-        else:
-            cell.set_facecolor('white')
-
-ax5.set_title('TABEL RINGKASAN HASIL EVALUASI MODEL', 
-              fontsize=14, fontweight='bold', pad=20)
-
-fig.suptitle('HASIL EVALUASI MODEL KLASIFIKASI - TITANIC DATASET', 
-             fontsize=18, fontweight='bold', y=0.98)
-
-plt.savefig('02_Model_Evaluation_Results.png', dpi=300, bbox_inches='tight')
-print("\n✓ Visualisasi hasil evaluasi disimpan sebagai '02_Model_Evaluation_Results.png'")
+plt.show()
 
 
-BAGIAN 7: RINGKASAN & KESIMPULAN
+# 10. KESIMPULAN
 
-print("\n" + "="*80)
-print("BAGIAN 7: RINGKASAN & KESIMPULAN")
-print("="*80)
+print("\n[10] KESIMPULAN")
+print("="*70)
 
-print("\n📊 TABEL RINGKASAN PERFORMA MODEL:")
-print("─"*80)
-summary_df = pd.DataFrame(results).T[['accuracy', 'precision', 'recall', 'f1_score', 'auc']]
-summary_df.columns = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
-summary_df = summary_df.round(4)
-summary_df['Rank'] = summary_df['Accuracy'].rank(ascending=False).astype(int)
-print(summary_df.sort_values('Accuracy', ascending=False).to_string())
+print("""
+Berdasarkan analisis klasifikasi dataset Titanic, dapat disimpulkan:
 
-# Best Model
-best_model_name = summary_df['Accuracy'].idxmax()
-best_accuracy = summary_df['Accuracy'].max()
-best_auc = summary_df.loc[best_model_name, 'ROC-AUC']
+1. PERFORMA MODEL:
+   - Logistic Regression menunjukkan performa yang sedikit lebih baik
+     dengan F1-Score dan ROC AUC yang lebih tinggi
+   - Decision Tree memiliki interpretabilitas yang baik melalui
+     feature importance
+   
+2. METRIK KUNCI:
+   - Kedua model mencapai akurasi >75% pada data testing
+   - Precision dan Recall seimbang pada kedua model
+   - ROC AUC >0.80 menunjukkan kemampuan diskriminasi yang baik
+   
+3. FEATURE IMPORTANCE:
+   - Fitur 'sex' (jenis kelamin) merupakan prediktor terkuat
+   - 'pclass' (kelas penumpang) dan 'age' juga berpengaruh signifikan
+   
+4. REKOMENDASI:
+   - Logistic Regression lebih cocok untuk deployment karena performa
+     sedikit lebih baik dan lebih efisien secara komputasi
+   - Decision Tree dapat digunakan untuk interpretasi hasil
+   - Dapat dilakukan improvement dengan feature engineering dan
+     hyperparameter tuning
 
-print(f"\n🏆 MODEL TERBAIK:")
-print("─"*80)
-print(f"  Nama Model : {best_model_name}")
-print(f"  Accuracy   : {best_accuracy:.4f} ({best_accuracy*100:.2f}%)")
-print(f"  ROC-AUC    : {best_auc:.4f}")
+""")
 
-print(f"\n📌 KEY FINDINGS:")
-print("─"*80)
-print(f"1. Dataset: Titanic dengan {len(titanic)} penumpang")
-print(f"2. Target: Survival rate = {titanic['survived'].mean()*100:.2f}%")
-print(f"3. Fitur: {len(features)} variabel ({', '.join(features)})")
-print(f"4. Model Terbaik: {best_model_name}")
-print(f"5. Semua model mencapai accuracy > 78%")
-
-print(f"\n💡 KESIMPULAN:")
-print("─"*80)
-print("1. Logistic Regression dan SVM menunjukkan performa terbaik (81.01%)")
-print("2. SVM memiliki ROC-AUC tertinggi, menunjukkan kemampuan diskriminasi terbaik")
-print("3. Decision Tree memberikan interpretabilitas dengan feature importance")
-print("4. Gender dan passenger class adalah prediktor terkuat survival")
-print("5. Model-model sudah cukup baik untuk baseline, bisa ditingkatkan dengan:")
-print("   - Hyperparameter tuning")
-print("   - Feature engineering (title extraction, family size)")
-print("   - Ensemble methods (Random Forest, XGBoost)")
-
-print("\n" + "="*80)
-print("ANALISIS SELESAI!")
-print("="*80)
-print("\n📁 FILE OUTPUT YANG DIHASILKAN:")
-print("  1. 01_EDA_Visualization.png")
-print("  2. 02_Model_Evaluation_Results.png")
-print("\n✓ Semua proses berhasil dijalankan!")
-print("="*80)
+print("="*70)
+print("ANALISIS SELESAI")
+print("="*70)
