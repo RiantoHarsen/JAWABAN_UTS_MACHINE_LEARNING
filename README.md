@@ -5,9 +5,9 @@ JAWABAN UTS NOMOR 1
 ===============================================================================
 TUGAS KLASIFIKASI - PREDIKSI SURVIVAL TITANIC
 ===============================================================================
-Nama    : [Isi Nama Anda]
-NIM     : [Isi NIM Anda]
-Kelas   : [Isi Kelas Anda]
+Nama    : FRANSISKUS RIANTO HARSEN
+NIM     : 231011401532
+Kelas   : 05TPLE005
 Tanggal : 28 Oktober 2025
 
 Dataset : Titanic Survival Dataset
